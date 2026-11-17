@@ -11,6 +11,13 @@ import { texto } from '../comum/corpo.js';
 
 export type SessaoComToken = Sessao & { token: string };
 
+/** Sessão validada com o que só o servidor precisa saber: o id (jti) e o fim. */
+export interface SessaoValidada {
+  jti: string;
+  usuario: Usuario;
+  expiraEm: Date;
+}
+
 interface LinhaConta {
   id: string;
   nome: string;
@@ -23,6 +30,7 @@ const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 @Injectable()
 export class SessaoService {
   private readonly duracaoSegundos = lerAmbiente().sessaoDuracaoSegundos;
+  private readonly aoEncerrarSessao = new Set<(jti: string) => void>();
 
   constructor(
     private readonly banco: DataSource,
@@ -104,6 +112,12 @@ export class SessaoService {
   }
 
   async validar(token: string): Promise<Sessao> {
+    const { usuario, expiraEm } = await this.identificar(token);
+    return { usuario, expiraEm: expiraEm.toISOString() };
+  }
+
+  /** Confere assinatura (só HS256) e se a sessão segue ativa no banco. */
+  async identificar(token: string): Promise<SessaoValidada> {
     let jti: string;
     try {
       ({ jti } = await this.jwt.verifyAsync<{ jti: string }>(token));
@@ -119,7 +133,13 @@ export class SessaoService {
     );
     if (!linha) throw sessaoExpirada();
 
-    return { usuario: paraUsuario(linha), expiraEm: new Date(linha.expira_em).toISOString() };
+    return { jti, usuario: paraUsuario(linha), expiraEm: new Date(linha.expira_em) };
+  }
+
+  /** Quem guarda algo atrelado à sessão (o socket de tempo real) é avisado quando ela é encerrada. */
+  observarEncerramento(ouvinte: (jti: string) => void): () => void {
+    this.aoEncerrarSessao.add(ouvinte);
+    return () => this.aoEncerrarSessao.delete(ouvinte);
   }
 
   /** Sair é idempotente: token inválido ou já revogado também responde 204. */
@@ -131,6 +151,7 @@ export class SessaoService {
       `UPDATE sessoes SET revogada_em = now() WHERE id = $1 AND revogada_em IS NULL`,
       [dados.jti],
     );
+    for (const ouvinte of this.aoEncerrarSessao) ouvinte(dados.jti);
   }
 
   private async abrirSessao(conta: LinhaConta, carrinhoVisitante: string | null): Promise<SessaoComToken> {

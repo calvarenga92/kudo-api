@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { createHash, randomBytes } from 'node:crypto';
 import { DataSource, type EntityManager } from 'typeorm';
 import { paraTexto, paraUnidades, type Pedido, type StatusPedido } from '@calvarenga92/kurio-regras';
@@ -6,6 +6,7 @@ import { CarrinhoService } from '../carrinho/carrinho.service.js';
 import { carrinhoDaConta } from '../carrinho/mescla.js';
 import { texto } from '../comum/corpo.js';
 import { dadosInvalidos, ErroAplicacao, naoEncontrado } from '../comum/erro-aplicacao.js';
+import { EventosGateway } from '../tempo-real/eventos.gateway.js';
 import { GatewayPagamento } from './pagamento.js';
 
 export interface Desfecho {
@@ -18,10 +19,13 @@ const eth = (v: string) => paraTexto(paraUnidades(v));
 
 @Injectable()
 export class PedidosService {
+  private readonly log = new Logger(PedidosService.name);
+
   constructor(
     private readonly banco: DataSource,
     private readonly carrinho: CarrinhoService,
     private readonly gateway: GatewayPagamento,
+    private readonly eventos: EventosGateway,
   ) {}
 
   /**
@@ -43,7 +47,7 @@ export class PedidosService {
 
     const impressao = createHash('sha256').update(JSON.stringify({ versaoCotacao, carteiraId })).digest('hex');
 
-    return this.banco.transaction(async (m) => {
+    const desfecho = await this.banco.transaction(async (m): Promise<Desfecho> => {
       const carrinhoId = await carrinhoDaConta(m, contaId);
 
       const [registro] = await m.query<Array<{ impressao: string; pedido_id: string }>>(
@@ -136,6 +140,46 @@ export class PedidosService {
 
       return { pedido: await this.carregar(m, contaId, pedidoId), repetido: false };
     });
+
+    // Só depois do commit: avisar antes seria anunciar um estoque que um rollback ainda pode desfazer.
+    if (!desfecho.repetido) await this.anunciar(contaId, desfecho.pedido);
+    return desfecho;
+  }
+
+  /**
+   * Lê o estado já gravado em vez de reaproveitar o que a transação calculou. Se duas compras
+   * terminam juntas e os avisos saem trocados, a versão da peça deixa o cliente descartar o antigo.
+   */
+  private async anunciar(contaId: string, pedido: Pedido): Promise<void> {
+    try {
+      if (pedido.status === 'CONFIRMADO') {
+        const ids = [...new Set(pedido.itens.map((i) => i.nftId))];
+        const linhas = await this.banco.query<Array<{ id: string; versao: number; edicoes: Array<{ id: string; preco_eth: string; disponivel: number }> }>>(
+          `SELECT n.id, n.versao,
+             json_agg(json_build_object('id', e.id, 'preco_eth', e.preco_eth::text, 'disponivel', e.disponivel) ORDER BY e.id) AS edicoes
+           FROM nfts n JOIN edicoes e ON e.nft_id = n.id
+           WHERE n.id = ANY($1::text[]) GROUP BY n.id, n.versao`,
+          [ids],
+        );
+        for (const l of linhas) {
+          this.eventos.publicarNft({
+            nftId: l.id,
+            versao: l.versao,
+            edicoes: l.edicoes.map((e) => ({ id: e.id, precoEth: eth(e.preco_eth), disponivel: e.disponivel })),
+          });
+        }
+      }
+      this.eventos.publicarPedido(contaId, {
+        pedidoId: pedido.id,
+        versao: pedido.versao,
+        status: pedido.status,
+        referenciaTransacao: pedido.referenciaTransacao,
+        motivoRecusa: pedido.motivoRecusa,
+      });
+    } catch (erro) {
+      // O pedido já está gravado; falha no aviso não pode virar erro para quem comprou.
+      this.log.warn(`aviso em tempo real falhou para ${pedido.id}: ${(erro as Error).message}`);
+    }
   }
 
   /** Só os pedidos da própria conta, mais recente primeiro. */

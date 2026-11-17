@@ -83,7 +83,7 @@ carteiras cujo endereço termina em `dead`, para o caminho de recusa poder ser t
 | 2 | sessão e conta: `/sessao`, `/contas`, `/perfil` (JWT revogável, senha com scrypt) | feito |
 | 3 | favoritos, carteiras, carrinho e cupom (carrinho de visitante e mescla no login) | feito |
 | 4 | pedidos com checkout idempotente, cotação conferida e estoque travado | feito |
-| 5 | tempo real (Socket.IO) | — |
+| 5 | tempo real (Socket.IO): estoque ao vivo e aviso de pedido por conta | feito |
 | 6 | deploy na AWS | — |
 
 ## Variáveis de ambiente

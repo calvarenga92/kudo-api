@@ -5,6 +5,7 @@ import { CarrinhoModule } from '../carrinho/carrinho.module.js';
 import { corpoObjeto } from '../comum/corpo.js';
 import { ExigeSessao, UsuarioAtual } from '../sessao/autenticacao.js';
 import { SessaoModule } from '../sessao/sessao.module.js';
+import { TempoRealModule } from '../tempo-real/tempo-real.module.js';
 import { GatewayPagamento, GatewaySimulado } from './pagamento.js';
 import { PedidosService } from './pedidos.service.js';
 
@@ -38,7 +39,7 @@ export class PedidosController {
 }
 
 @Module({
-  imports: [SessaoModule, CarrinhoModule],
+  imports: [SessaoModule, CarrinhoModule, TempoRealModule],
   controllers: [PedidosController],
   providers: [PedidosService, { provide: GatewayPagamento, useClass: GatewaySimulado }],
 })

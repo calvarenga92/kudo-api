@@ -2,6 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import { CABECALHO_IDEMPOTENCIA } from '@calvarenga92/kurio-regras';
 import { CABECALHO_CARRINHO } from './carrinho/mescla.js';
 import { FiltroErros } from './comum/filtro-erros.js';
+import { AdaptadorSocket } from './tempo-real/adaptador-socket.js';
 
 /**
  * Tudo que a aplicação precisa além dos módulos. Fica separado do main.ts
@@ -17,5 +18,7 @@ export function configurarApp(app: INestApplication, origensCors: string[]): voi
     // Sem expor, o navegador esconde do front o id do carrinho de visitante.
     exposedHeaders: [CABECALHO_CARRINHO],
   });
+  // Socket.IO em /socket.io, na mesma porta: o front usa VITE_SOCKET_URL = origem da API.
+  app.useWebSocketAdapter(new AdaptadorSocket(app, origensCors));
   app.enableShutdownHooks();
 }
