@@ -1,5 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import { CABECALHO_IDEMPOTENCIA } from '@calvarenga92/kurio-regras';
+import { CABECALHO_CARRINHO } from './carrinho/mescla.js';
 import { FiltroErros } from './comum/filtro-erros.js';
 
 /**
@@ -12,7 +13,9 @@ export function configurarApp(app: INestApplication, origensCors: string[]): voi
   app.useGlobalFilters(new FiltroErros());
   app.enableCors({
     origin: origensCors,
-    allowedHeaders: ['Content-Type', 'Authorization', CABECALHO_IDEMPOTENCIA],
+    allowedHeaders: ['Content-Type', 'Authorization', CABECALHO_IDEMPOTENCIA, CABECALHO_CARRINHO],
+    // Sem expor, o navegador esconde do front o id do carrinho de visitante.
+    exposedHeaders: [CABECALHO_CARRINHO],
   });
   app.enableShutdownHooks();
 }

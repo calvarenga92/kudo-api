@@ -12,7 +12,7 @@ const servidor = new PGLiteSocketServer({
   db,
   port: PORTA_BANCO,
   host: '127.0.0.1',
-  // PGlite é uma conexão só; o servidor multiplexa para o pool do driver (10 por padrão).
+  // Aceita várias conexões (senão as excedentes caem com ECONNRESET)...
   maxConnections: 10,
 });
 await servidor.start();
@@ -26,6 +26,10 @@ const api = spawn(process.execPath, [nest, 'start', '--watch'], {
   env: {
     ...process.env,
     DATABASE_URL: process.env.DATABASE_URL ?? urlBanco,
+    // ...mas a API usa uma só: o PGlite é uma conexão de verdade, e consultas simultâneas
+    // multiplexadas misturam comandos preparados ("unnamed prepared statement does not exist").
+    // Num Postgres real (Docker, AWS) o pool volta ao padrão de 10.
+    DB_POOL_MAX: process.env.DATABASE_URL ? process.env.DB_POOL_MAX : '1',
     // Só para desenvolvimento local; produção define o seu (veja .env.example).
     JWT_SEGREDO: process.env.JWT_SEGREDO ?? 'segredo-local-de-desenvolvimento-nao-usar-em-producao',
   },

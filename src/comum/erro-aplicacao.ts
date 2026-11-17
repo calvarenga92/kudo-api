@@ -16,8 +16,8 @@ export class ErroAplicacao extends Error {
   }
 }
 
-export const naoEncontrado = (oQue: string) =>
-  new ErroAplicacao(404, 'NAO_ENCONTRADO', `${oQue} não encontrado.`);
+export const naoEncontrado = (oQue: string, genero: 'o' | 'a' = 'o') =>
+  new ErroAplicacao(404, 'NAO_ENCONTRADO', `${oQue} não encontrad${genero}.`);
 
 export const naoAutenticado = () =>
   new ErroAplicacao(401, 'NAO_AUTENTICADO', 'Entre na sua conta para continuar.');

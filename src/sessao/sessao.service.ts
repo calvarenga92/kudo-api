@@ -6,6 +6,8 @@ import type { Sessao, Usuario } from '@calvarenga92/kurio-regras';
 import { lerAmbiente } from '../config/ambiente.js';
 import { dadosInvalidos, ErroAplicacao, sessaoExpirada } from '../comum/erro-aplicacao.js';
 import { conferirSenha, gerarHash, hashParaEmailInexistente } from '../contas/senha.js';
+import { mesclarCarrinhoVisitante } from '../carrinho/mescla.js';
+import { texto } from '../comum/corpo.js';
 
 export type SessaoComToken = Sessao & { token: string };
 
@@ -17,7 +19,6 @@ interface LinhaConta {
 }
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const texto = (v: unknown) => (typeof v === 'string' ? v : '');
 
 @Injectable()
 export class SessaoService {
@@ -28,7 +29,8 @@ export class SessaoService {
     private readonly jwt: JwtService,
   ) {}
 
-  async entrar(corpo: Record<string, unknown>): Promise<SessaoComToken> {
+  /** `carrinhoVisitante`: o que a pessoa montou antes de entrar passa para a conta. */
+  async entrar(corpo: Record<string, unknown>, carrinhoVisitante: string | null): Promise<SessaoComToken> {
     const email = texto(corpo.email).trim();
     const senha = texto(corpo.senha);
     const campos: Record<string, string> = {};
@@ -47,10 +49,10 @@ export class SessaoService {
       throw new ErroAplicacao(401, 'CREDENCIAIS_INVALIDAS', 'E-mail ou senha incorretos.');
     }
 
-    return this.abrirSessao(conta);
+    return this.abrirSessao(conta, carrinhoVisitante);
   }
 
-  async cadastrar(corpo: Record<string, unknown>): Promise<SessaoComToken> {
+  async cadastrar(corpo: Record<string, unknown>, carrinhoVisitante: string | null): Promise<SessaoComToken> {
     const nome = texto(corpo.nome).trim();
     const email = texto(corpo.email).trim();
     const senha = texto(corpo.senha);
@@ -79,13 +81,26 @@ export class SessaoService {
       throw erro;
     }
 
-    return this.abrirSessao({ id, nome, email, avatar_url: null });
+    return this.abrirSessao({ id, nome, email, avatar_url: null }, carrinhoVisitante);
   }
 
   /** Sessão do token. Token ausente: visitante (null). Token vencido, revogado ou adulterado: expirada. */
   async consultar(token: string | null): Promise<Sessao | null> {
     if (!token) return null;
     return this.validar(token);
+  }
+
+  /**
+   * Para rotas que funcionam com ou sem conta (catálogo, carrinho): token inválido ou
+   * vencido conta como visitante, como no mock. Rota que exige conta usa ExigeSessao.
+   */
+  async usuarioOpcional(token: string | null): Promise<Usuario | null> {
+    if (!token) return null;
+    try {
+      return (await this.validar(token)).usuario;
+    } catch {
+      return null;
+    }
   }
 
   async validar(token: string): Promise<Sessao> {
@@ -118,13 +133,16 @@ export class SessaoService {
     );
   }
 
-  private async abrirSessao(conta: LinhaConta): Promise<SessaoComToken> {
+  private async abrirSessao(conta: LinhaConta, carrinhoVisitante: string | null): Promise<SessaoComToken> {
     const jti = randomUUID();
     const expiraEm = new Date(Date.now() + this.duracaoSegundos * 1000);
-    await this.banco.query(
-      `INSERT INTO sessoes (id, conta_id, expira_em) VALUES ($1, $2, $3)`,
-      [jti, conta.id, expiraEm],
-    );
+    await this.banco.transaction(async (m) => {
+      await m.query(
+        `INSERT INTO sessoes (id, conta_id, expira_em) VALUES ($1, $2, $3)`,
+        [jti, conta.id, expiraEm],
+      );
+      await mesclarCarrinhoVisitante(m, carrinhoVisitante, conta.id);
+    });
     const token = await this.jwt.signAsync(
       { sub: conta.id },
       { jwtid: jti, expiresIn: this.duracaoSegundos },

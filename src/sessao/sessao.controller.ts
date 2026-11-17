@@ -4,12 +4,14 @@ import {
 import type { Usuario } from '@calvarenga92/kurio-regras';
 import type { Request, Response } from 'express';
 import { DataSource } from 'typeorm';
+import { CABECALHO_CARRINHO } from '../carrinho/mescla.js';
+import { corpoObjeto } from '../comum/corpo.js';
 import { dadosInvalidos } from '../comum/erro-aplicacao.js';
 import { ExigeSessao, tokenDaRequisicao, UsuarioAtual } from './autenticacao.js';
 import { paraUsuario, SessaoService } from './sessao.service.js';
 
-const corpoObjeto = (corpo: unknown): Record<string, unknown> =>
-  corpo && typeof corpo === 'object' && !Array.isArray(corpo) ? (corpo as Record<string, unknown>) : {};
+export const carrinhoVisitanteDa = (req: Request): string | null =>
+  req.get(CABECALHO_CARRINHO)?.trim() || null;
 
 @Controller()
 export class SessaoController {
@@ -20,13 +22,13 @@ export class SessaoController {
 
   @Post('sessao')
   @HttpCode(200)
-  entrar(@Body() corpo: unknown) {
-    return this.sessoes.entrar(corpoObjeto(corpo));
+  entrar(@Body() corpo: unknown, @Req() req: Request) {
+    return this.sessoes.entrar(corpoObjeto(corpo), carrinhoVisitanteDa(req));
   }
 
   @Post('contas')
-  cadastrar(@Body() corpo: unknown) {
-    return this.sessoes.cadastrar(corpoObjeto(corpo));
+  cadastrar(@Body() corpo: unknown, @Req() req: Request) {
+    return this.sessoes.cadastrar(corpoObjeto(corpo), carrinhoVisitanteDa(req));
   }
 
   /** Visitante recebe 204 sem corpo, como o mock. */

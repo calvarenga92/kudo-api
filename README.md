@@ -51,6 +51,15 @@ Senhas com scrypt (parâmetros da OWASP), comparação em tempo constante, e o m
 custo e a mesma resposta para e-mail inexistente e senha errada: a API não revela quem
 tem conta. Contas de demonstração: `claudio@kudo.test` e `marina@kudo.test`, senha `senha12345`.
 
+## Carrinho de visitante
+
+Quem ainda não entrou também monta carrinho. A API identifica esse carrinho por um id
+aleatório de 24 bytes, devolvido no cabeçalho `X-Carrinho-Visitante` (exposto via CORS);
+o front guarda e reenvia. Cookie não serve aqui: front e API ficam em domínios diferentes.
+Ao entrar ou se cadastrar, os itens passam para o carrinho da conta (mesma edição soma) e
+o id de visitante deixa de valer. Toda alteração trava o carrinho na transação
+(`SELECT ... FOR UPDATE`): cliques simultâneos não furam o limite por pedido.
+
 ## Andamento
 
 | fase | escopo | estado |
@@ -58,7 +67,7 @@ tem conta. Contas de demonstração: `claudio@kudo.test` e `marina@kudo.test`, s
 | 0 | base: Nest, Postgres, Docker, formato de erro, CORS, saúde | feito |
 | 1 | catálogo: `/nfts`, `/nfts/:id`, `/nfts/faixa`, `/colecoes` | feito |
 | 2 | sessão e conta: `/sessao`, `/contas`, `/perfil` (JWT revogável, senha com scrypt) | feito |
-| 3 | favoritos, carteiras, carrinho e cupom | — |
+| 3 | favoritos, carteiras, carrinho e cupom (carrinho de visitante e mescla no login) | feito |
 | 4 | pedidos com checkout idempotente | — |
 | 5 | tempo real (Socket.IO) | — |
 | 6 | deploy na AWS | — |

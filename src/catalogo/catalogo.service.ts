@@ -4,13 +4,17 @@ import {
   paraTexto, paraUnidades,
   type Colecao, type ConsultaNfts, type Eth, type FaixaPreco, type Nft, type NftResumo, type Pagina,
 } from '@calvarenga92/kurio-regras';
-import { naoEncontrado } from '../comum/erro-aplicacao.js';
+import { naoAutenticado, naoEncontrado } from '../comum/erro-aplicacao.js';
 
 /** numeric chega do driver como string ("1.990000000000000000"); sai no formato do contrato ("1.99"). */
 const eth = (valor: string): Eth => paraTexto(paraUnidades(valor));
 
 /** Preço mínimo da peça = menor preço entre as edições. */
 const PRECO_MINIMO = `(SELECT min(e.preco_eth) FROM edicoes e WHERE e.nft_id = n.id)`;
+
+/** Marca de favorito da conta (null = visitante, nada é favorito). */
+const FAVORITO = (param: string) =>
+  `EXISTS (SELECT 1 FROM favoritos f WHERE f.conta_id = ${param}::text AND f.nft_id = n.id)`;
 
 const ORDEM_SQL: Record<NonNullable<ConsultaNfts['ordenacao']>, string> = {
   recentes: 'n.listado_em DESC, n.id',
@@ -29,13 +33,14 @@ interface LinhaResumo {
   colecao_id: string;
   colecao_nome: string;
   preco_minimo: string;
+  favorito: boolean;
 }
 
 @Injectable()
 export class CatalogoService {
   constructor(private readonly banco: DataSource) {}
 
-  async listar(consulta: ConsultaNfts): Promise<Pagina<NftResumo>> {
+  async listar(consulta: ConsultaNfts, contaId: string | null): Promise<Pagina<NftResumo>> {
     const params: unknown[] = [];
     const p = (valor: unknown) => {
       params.push(valor);
@@ -64,7 +69,8 @@ export class CatalogoService {
     const { pagina, porPagina } = consulta;
     const linhas = await this.banco.query<LinhaResumo[]>(
       `SELECT n.id, n.slug, n.titulo, n.imagem_url, n.autor, n.versao,
-              c.id AS colecao_id, c.nome AS colecao_nome, ${PRECO_MINIMO} AS preco_minimo
+              c.id AS colecao_id, c.nome AS colecao_nome, ${PRECO_MINIMO} AS preco_minimo,
+              ${FAVORITO(p(contaId))} AS favorito
        ${de}
        ORDER BY ${ORDEM_SQL[consulta.ordenacao ?? 'recentes']}
        LIMIT ${p(porPagina)} OFFSET ${p((pagina - 1) * porPagina)}`,
@@ -81,17 +87,18 @@ export class CatalogoService {
   }
 
   /** Aceita id ("nft-001") ou slug ("emerald-ape-042"), como o mock. */
-  async detalhar(idOuSlug: string): Promise<Nft> {
+  async detalhar(idOuSlug: string, contaId: string | null): Promise<Nft> {
     const [linha] = await this.banco.query<Array<LinhaResumo & {
       descricao: string;
       galeria: string[];
       atributos: Nft['atributos'];
     }>>(
       `SELECT n.id, n.slug, n.titulo, n.imagem_url, n.autor, n.versao, n.descricao, n.galeria, n.atributos,
-              c.id AS colecao_id, c.nome AS colecao_nome, ${PRECO_MINIMO} AS preco_minimo
+              c.id AS colecao_id, c.nome AS colecao_nome, ${PRECO_MINIMO} AS preco_minimo,
+              ${FAVORITO('$2')} AS favorito
        FROM nfts n JOIN colecoes c ON c.id = n.colecao_id
        WHERE n.id = $1 OR n.slug = $1`,
-      [idOuSlug],
+      [idOuSlug, contaId],
     );
     if (!linha) throw naoEncontrado('NFT');
 
@@ -127,6 +134,38 @@ export class CatalogoService {
     return { minimo: eth(linha?.minimo ?? '0'), maximo: eth(linha?.maximo ?? '0') };
   }
 
+  /** Favoritos da conta, mais recente primeiro. Visitante não tem favoritos. */
+  async favoritos(contaId: string | null): Promise<NftResumo[]> {
+    if (!contaId) return [];
+    const linhas = await this.banco.query<LinhaResumo[]>(
+      `SELECT n.id, n.slug, n.titulo, n.imagem_url, n.autor, n.versao,
+              c.id AS colecao_id, c.nome AS colecao_nome, ${PRECO_MINIMO} AS preco_minimo, true AS favorito
+       FROM favoritos f
+       JOIN nfts n ON n.id = f.nft_id
+       JOIN colecoes c ON c.id = n.colecao_id
+       WHERE f.conta_id = $1
+       ORDER BY f.criado_em DESC, n.id`,
+      [contaId],
+    );
+    return linhas.map(paraResumo);
+  }
+
+  /** Idempotente: favoritar de novo não duplica nem falha. */
+  async marcarFavorito(contaId: string | null, nftId: string, favorito: boolean): Promise<{ favorito: boolean }> {
+    if (!contaId) throw naoAutenticado();
+    if (favorito) {
+      const [existe] = await this.banco.query(`SELECT 1 FROM nfts WHERE id = $1`, [nftId]);
+      if (!existe) throw naoEncontrado('NFT');
+      await this.banco.query(
+        `INSERT INTO favoritos (conta_id, nft_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [contaId, nftId],
+      );
+    } else {
+      await this.banco.query(`DELETE FROM favoritos WHERE conta_id = $1 AND nft_id = $2`, [contaId, nftId]);
+    }
+    return { favorito };
+  }
+
   colecoes(): Promise<Colecao[]> {
     return this.banco.query<Colecao[]>(`SELECT id, nome FROM colecoes ORDER BY ordem`);
   }
@@ -141,8 +180,7 @@ function paraResumo(l: LinhaResumo): NftResumo {
     autor: l.autor,
     colecao: { id: l.colecao_id, nome: l.colecao_nome },
     precoMinimoEth: eth(l.preco_minimo),
-    // Favoritos dependem da sessão (fase 2); sem sessão, nada é favorito.
-    favorito: false,
+    favorito: l.favorito,
     versao: l.versao,
   };
 }

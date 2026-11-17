@@ -8,6 +8,8 @@ export interface Ambiente {
   origensCors: string[];
   jwtSegredo: string;
   sessaoDuracaoSegundos: number;
+  /** Conexões no pool do driver. O PGlite local precisa de 1 (veja scripts/dev.mjs). */
+  poolMaximo: number;
 }
 
 export function lerAmbiente(env: NodeJS.ProcessEnv = process.env): Ambiente {
@@ -32,10 +34,15 @@ export function lerAmbiente(env: NodeJS.ProcessEnv = process.env): Ambiente {
     throw new Error(`SESSAO_DURACAO_SEGUNDOS inválida: "${env.SESSAO_DURACAO_SEGUNDOS}".`);
   }
 
+  const poolMaximo = Number(env.DB_POOL_MAX ?? 10);
+  if (!Number.isInteger(poolMaximo) || poolMaximo <= 0) {
+    throw new Error(`DB_POOL_MAX inválido: "${env.DB_POOL_MAX}".`);
+  }
+
   const origensCors = (env.CORS_ORIGENS ?? 'http://localhost:5173')
     .split(',')
     .map((o) => o.trim())
     .filter(Boolean);
 
-  return { porta, urlBanco, origensCors, jwtSegredo, sessaoDuracaoSegundos };
+  return { porta, urlBanco, origensCors, jwtSegredo, sessaoDuracaoSegundos, poolMaximo };
 }

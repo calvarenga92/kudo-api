@@ -20,6 +20,7 @@ describe('lerAmbiente', () => {
       origensCors: ['http://localhost:5173'],
       jwtSegredo: SEGREDO,
       sessaoDuracaoSegundos: 3600,
+      poolMaximo: 10,
     });
   });
 
