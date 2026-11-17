@@ -8,7 +8,13 @@ import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
 const PORTA_BANCO = Number(process.env.PORTA_BANCO ?? 5433);
 
 const db = await PGlite.create('./.banco-local');
-const servidor = new PGLiteSocketServer({ db, port: PORTA_BANCO, host: '127.0.0.1' });
+const servidor = new PGLiteSocketServer({
+  db,
+  port: PORTA_BANCO,
+  host: '127.0.0.1',
+  // PGlite é uma conexão só; o servidor multiplexa para o pool do driver (10 por padrão).
+  maxConnections: 10,
+});
 await servidor.start();
 
 const urlBanco = `postgres://postgres:postgres@127.0.0.1:${PORTA_BANCO}/postgres?sslmode=disable`;
@@ -24,7 +30,12 @@ let encerrando = false;
 async function encerrar(codigo = 0) {
   if (encerrando) return;
   encerrando = true;
-  api.kill();
+  // No Windows, kill() derruba só o watcher e a API que ele subiu fica órfã segurando a porta.
+  if (process.platform === 'win32' && api.pid) {
+    spawn('taskkill', ['/pid', String(api.pid), '/T', '/F'], { stdio: 'ignore' });
+  } else {
+    api.kill();
+  }
   await servidor.stop();
   await db.close();
   process.exit(codigo);

@@ -9,7 +9,7 @@ import type { TestProject } from 'vitest/node';
  */
 export default async function iniciar(projeto: TestProject) {
   const db = await PGlite.create();
-  const servidor = new PGLiteSocketServer({ db, port: 0, host: '127.0.0.1' });
+  const servidor = new PGLiteSocketServer({ db, port: 0, host: '127.0.0.1', maxConnections: 10 });
   await servidor.start();
 
   const endereco = servidor.getServerConn();
