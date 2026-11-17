@@ -43,13 +43,21 @@ Todo erro sai como `{ codigo, mensagem, campos? }`. O front decide pelo `codigo`
 (ex.: `SESSAO_EXPIRADA` limpa o token); a mensagem é só para leitura. Erro inesperado
 vira `500 ERRO_DESCONHECIDO`, sem vazar detalhe interno.
 
+## Sessão
+
+Login devolve um JWT (HS256, 1 hora) que carrega o id da sessão; a sessão também fica
+registrada no banco. Assim **sair revoga o token na hora**, o que um JWT puro não faz.
+Senhas com scrypt (parâmetros da OWASP), comparação em tempo constante, e o mesmo
+custo e a mesma resposta para e-mail inexistente e senha errada: a API não revela quem
+tem conta. Contas de demonstração: `claudio@kudo.test` e `marina@kudo.test`, senha `senha12345`.
+
 ## Andamento
 
 | fase | escopo | estado |
 |---|---|---|
 | 0 | base: Nest, Postgres, Docker, formato de erro, CORS, saúde | feito |
 | 1 | catálogo: `/nfts`, `/nfts/:id`, `/nfts/faixa`, `/colecoes` | feito |
-| 2 | sessão e conta com JWT | — |
+| 2 | sessão e conta: `/sessao`, `/contas`, `/perfil` (JWT revogável, senha com scrypt) | feito |
 | 3 | favoritos, carteiras, carrinho e cupom | — |
 | 4 | pedidos com checkout idempotente | — |
 | 5 | tempo real (Socket.IO) | — |

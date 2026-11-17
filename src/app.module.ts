@@ -4,6 +4,7 @@ import { MIGRACOES } from './banco/migracoes/index.js';
 import { CatalogoModule } from './catalogo/catalogo.module.js';
 import { lerAmbiente } from './config/ambiente.js';
 import { SaudeController } from './saude/saude.controller.js';
+import { SessaoModule } from './sessao/sessao.module.js';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { SaudeController } from './saude/saude.controller.js';
       }),
     }),
     CatalogoModule,
+    SessaoModule,
   ],
   controllers: [SaudeController],
 })

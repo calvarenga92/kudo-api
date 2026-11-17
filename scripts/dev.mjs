@@ -23,7 +23,12 @@ console.log(`Banco local em ${urlBanco}`);
 const nest = createRequire(import.meta.url).resolve('@nestjs/cli/bin/nest.js');
 const api = spawn(process.execPath, [nest, 'start', '--watch'], {
   stdio: 'inherit',
-  env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL ?? urlBanco },
+  env: {
+    ...process.env,
+    DATABASE_URL: process.env.DATABASE_URL ?? urlBanco,
+    // Só para desenvolvimento local; produção define o seu (veja .env.example).
+    JWT_SEGREDO: process.env.JWT_SEGREDO ?? 'segredo-local-de-desenvolvimento-nao-usar-em-producao',
+  },
 });
 
 let encerrando = false;

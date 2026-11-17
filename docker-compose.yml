@@ -22,6 +22,8 @@ services:
       DATABASE_URL: postgres://kudo:kudo@banco:5432/kudo
       PORT: 3000
       CORS_ORIGENS: http://localhost:5173
+      # Só para rodar local; em produção vem de um segredo do ambiente.
+      JWT_SEGREDO: segredo-local-do-compose-nao-usar-em-producao
     ports:
       - "3000:3000"
     depends_on:
