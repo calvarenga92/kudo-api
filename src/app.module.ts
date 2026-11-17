@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MIGRACOES } from './banco/migracoes/index.js';
+import { CatalogoModule } from './catalogo/catalogo.module.js';
 import { lerAmbiente } from './config/ambiente.js';
 import { SaudeController } from './saude/saude.controller.js';
 
@@ -12,9 +14,12 @@ import { SaudeController } from './saude/saude.controller.js';
         autoLoadEntities: true,
         // Esquema muda só por migração; synchronize apagaria dado em produção.
         synchronize: false,
+        migrations: MIGRACOES,
+        migrationsRun: true,
         retryAttempts: 3,
       }),
     }),
+    CatalogoModule,
   ],
   controllers: [SaudeController],
 })

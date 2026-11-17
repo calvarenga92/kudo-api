@@ -48,7 +48,7 @@ vira `500 ERRO_DESCONHECIDO`, sem vazar detalhe interno.
 | fase | escopo | estado |
 |---|---|---|
 | 0 | base: Nest, Postgres, Docker, formato de erro, CORS, saúde | feito |
-| 1 | catálogo: `/nfts`, `/nfts/:id`, `/nfts/faixa`, `/colecoes` | — |
+| 1 | catálogo: `/nfts`, `/nfts/:id`, `/nfts/faixa`, `/colecoes` | feito |
 | 2 | sessão e conta com JWT | — |
 | 3 | favoritos, carteiras, carrinho e cupom | — |
 | 4 | pedidos com checkout idempotente | — |
