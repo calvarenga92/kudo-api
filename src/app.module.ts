@@ -5,6 +5,7 @@ import { CarrinhoModule } from './carrinho/carrinho.module.js';
 import { CarteirasModule } from './carteiras/carteiras.module.js';
 import { CatalogoModule } from './catalogo/catalogo.module.js';
 import { lerAmbiente } from './config/ambiente.js';
+import { PedidosModule } from './pedidos/pedidos.module.js';
 import { SaudeController } from './saude/saude.controller.js';
 import { SessaoModule } from './sessao/sessao.module.js';
 
@@ -27,6 +28,7 @@ import { SessaoModule } from './sessao/sessao.module.js';
     SessaoModule,
     CarteirasModule,
     CarrinhoModule,
+    PedidosModule,
   ],
   controllers: [SaudeController],
 })

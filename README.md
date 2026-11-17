@@ -60,6 +60,20 @@ Ao entrar ou se cadastrar, os itens passam para o carrinho da conta (mesma ediç
 o id de visitante deixa de valer. Toda alteração trava o carrinho na transação
 (`SELECT ... FOR UPDATE`): cliques simultâneos não furam o limite por pedido.
 
+## Checkout
+
+`POST /api/pedidos` exige o cabeçalho `Idempotency-Key`. Mesma chave e mesmo corpo devolvem
+o pedido original (200) em vez de cobrar de novo; mesma chave com outro corpo é recusada
+(409). Envios simultâneos com a mesma chave esperam o primeiro terminar e recebem o mesmo
+pedido. A pessoa confirma a versão da cotação que viu: se preço, quantidade ou cupom mudaram,
+a API recusa (`COTACAO_DESATUALIZADA`) em vez de cobrar outro valor. As edições são travadas
+em ordem fixa e o estoque é reconferido: na disputa pela última unidade, uma conta compra e a
+outra é avisada. O pedido guarda um retrato imutável dos itens e valores.
+
+Cada conta só enxerga os próprios pedidos (pedido alheio responde 404, como inexistente).
+O pagamento passa por um gateway simulado, trocável por um real: ele aprova tudo, exceto
+carteiras cujo endereço termina em `dead`, para o caminho de recusa poder ser testado.
+
 ## Andamento
 
 | fase | escopo | estado |
@@ -68,7 +82,7 @@ o id de visitante deixa de valer. Toda alteração trava o carrinho na transaç�
 | 1 | catálogo: `/nfts`, `/nfts/:id`, `/nfts/faixa`, `/colecoes` | feito |
 | 2 | sessão e conta: `/sessao`, `/contas`, `/perfil` (JWT revogável, senha com scrypt) | feito |
 | 3 | favoritos, carteiras, carrinho e cupom (carrinho de visitante e mescla no login) | feito |
-| 4 | pedidos com checkout idempotente | — |
+| 4 | pedidos com checkout idempotente, cotação conferida e estoque travado | feito |
 | 5 | tempo real (Socket.IO) | — |
 | 6 | deploy na AWS | — |
 
