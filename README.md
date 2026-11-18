@@ -1,5 +1,8 @@
 # Kudo API
 
+No ar: **https://kudo-api-2va3.onrender.com/api/saude** · front: https://calvarenga-jungle-nft.vercel.app
+(plano gratuito do Render: depois de um tempo parada, a primeira requisição leva uns 50 s).
+
 Back-end do [Kudo](https://github.com/calvarenga92/kudo), marketplace de arte digital.
 NestJS + PostgreSQL, empacotado com Docker.
 
@@ -105,7 +108,7 @@ carteiras cujo endereço termina em `dead`, para o caminho de recusa poder ser t
 | 3 | favoritos, carteiras, carrinho e cupom (carrinho de visitante e mescla no login) | feito |
 | 4 | pedidos com checkout idempotente, cotação conferida e estoque travado | feito |
 | 5 | tempo real (Socket.IO): estoque ao vivo e aviso de pedido por conta | feito |
-| 6 | deploy na AWS | — |
+| 6 | deploy: API no Render (Docker), Postgres 17 no Neon, front na Vercel falando com ela | feito |
 
 ## Variáveis de ambiente
 
