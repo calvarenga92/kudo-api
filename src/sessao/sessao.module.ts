@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { lerAmbiente } from '../config/ambiente.js';
 import { ExigeSessao } from './autenticacao.js';
+import { LimiteLogin } from './limite-login.js';
 import { SessaoController } from './sessao.controller.js';
 import { SessaoService } from './sessao.service.js';
 
@@ -17,7 +18,7 @@ import { SessaoService } from './sessao.service.js';
     }),
   ],
   controllers: [SessaoController],
-  providers: [SessaoService, ExigeSessao],
+  providers: [SessaoService, ExigeSessao, LimiteLogin],
   exports: [SessaoService, ExigeSessao],
 })
 export class SessaoModule {}

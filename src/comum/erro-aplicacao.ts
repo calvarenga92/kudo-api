@@ -1,4 +1,10 @@
-import type { CodigoErro } from '@calvarenga92/kurio-regras';
+import type { CodigoErro as CodigoDoContrato } from '@calvarenga92/kurio-regras';
+
+/**
+ * `MUITAS_TENTATIVAS` já está no contrato do @calvarenga92/kudo-regras 0.2.0. Enquanto a API
+ * usa a kurio-regras 0.1.0, ele entra aqui; na troca de pacote, este tipo vira só o reexport.
+ */
+export type CodigoErro = CodigoDoContrato | 'MUITAS_TENTATIVAS';
 
 /**
  * Erro de regra de negócio. O front decide pelo `codigo`, nunca pelo texto,
@@ -10,6 +16,8 @@ export class ErroAplicacao extends Error {
     readonly codigo: CodigoErro,
     mensagem: string,
     readonly campos?: Record<string, string>,
+    /** Cabeçalhos extras da resposta (ex.: Retry-After). */
+    readonly cabecalhos?: Record<string, string>,
   ) {
     super(mensagem);
     this.name = 'ErroAplicacao';
@@ -27,3 +35,14 @@ export const sessaoExpirada = () =>
 
 export const dadosInvalidos = (campos: Record<string, string>) =>
   new ErroAplicacao(422, 'DADOS_INVALIDOS', 'Confira os campos destacados.', campos);
+
+/** 429 com Retry-After em segundos, arredondado para cima: o cliente nunca volta cedo demais. */
+export function muitasTentativas(esperaMs: number) {
+  const segundos = Math.max(1, Math.ceil(esperaMs / 1000));
+  const minutos = Math.ceil(segundos / 60);
+  const quando = minutos <= 1 ? 'em 1 minuto' : `em ${minutos} minutos`;
+  return new ErroAplicacao(
+    429, 'MUITAS_TENTATIVAS', `Muitas tentativas. Tente de novo ${quando}.`, undefined,
+    { 'Retry-After': String(segundos) },
+  );
+}

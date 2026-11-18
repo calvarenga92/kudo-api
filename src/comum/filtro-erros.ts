@@ -6,9 +6,11 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import type { CodigoErro, CorpoErro } from '@calvarenga92/kurio-regras';
+import type { CorpoErro as CorpoDoContrato } from '@calvarenga92/kurio-regras';
 import type { Response } from 'express';
-import { ErroAplicacao } from './erro-aplicacao.js';
+import { type CodigoErro, ErroAplicacao } from './erro-aplicacao.js';
+
+type CorpoErro = Omit<CorpoDoContrato, 'codigo'> & { codigo: CodigoErro };
 
 /** Erros do próprio Nest (rota inexistente, JSON malformado...) no código que o front entende. */
 const CODIGO_POR_STATUS: Partial<Record<number, CodigoErro>> = {
@@ -17,6 +19,7 @@ const CODIGO_POR_STATUS: Partial<Record<number, CodigoErro>> = {
   [HttpStatus.FORBIDDEN]: 'ACESSO_NEGADO',
   [HttpStatus.NOT_FOUND]: 'NAO_ENCONTRADO',
   [HttpStatus.UNPROCESSABLE_ENTITY]: 'DADOS_INVALIDOS',
+  [HttpStatus.TOO_MANY_REQUESTS]: 'MUITAS_TENTATIVAS',
   [HttpStatus.SERVICE_UNAVAILABLE]: 'FALHA_TRANSITORIA',
 };
 
@@ -31,6 +34,7 @@ export class FiltroErros implements ExceptionFilter {
   catch(excecao: unknown, host: ArgumentsHost): void {
     const resposta = host.switchToHttp().getResponse<Response>();
     const { status, corpo } = this.traduzir(excecao);
+    if (excecao instanceof ErroAplicacao && excecao.cabecalhos) resposta.set(excecao.cabecalhos);
 
     if (status >= 500) {
       this.log.error(excecao instanceof Error ? excecao.stack : String(excecao));
@@ -71,6 +75,8 @@ function mensagemPadrao(codigo: CodigoErro): string {
       return 'Você não tem acesso a este recurso.';
     case 'FALHA_TRANSITORIA':
       return 'Serviço indisponível no momento.';
+    case 'MUITAS_TENTATIVAS':
+      return 'Muitas tentativas. Tente de novo em alguns minutos.';
     default:
       return 'Algo deu errado. Tente de novo.';
   }

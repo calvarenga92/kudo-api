@@ -8,7 +8,10 @@ import { AdaptadorSocket } from './tempo-real/adaptador-socket.js';
  * Tudo que a aplicação precisa além dos módulos. Fica separado do main.ts
  * para os testes e2e subirem a API exatamente como em produção.
  */
-export function configurarApp(app: INestApplication, origensCors: string[]): void {
+export function configurarApp(app: INestApplication, origensCors: string[], saltosProxy = 0): void {
+  // Atrás do balanceador, o IP da conexão é o dele; o da pessoa vem no X-Forwarded-For.
+  // Confiar só no número exato de saltos: confiar em tudo deixaria o cliente forjar o IP.
+  if (saltosProxy > 0) app.getHttpAdapter().getInstance().set('trust proxy', saltosProxy);
   // O front chama `${VITE_API_URL}/nfts`; em dev o padrão dele é '/api'.
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new FiltroErros());

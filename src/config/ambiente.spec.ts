@@ -21,6 +21,10 @@ describe('lerAmbiente', () => {
       jwtSegredo: SEGREDO,
       sessaoDuracaoSegundos: 3600,
       poolMaximo: 10,
+      loginMaximoPorIp: 30,
+      loginMaximoFalhas: 5,
+      loginJanelaSegundos: 900,
+      saltosProxy: 0,
     });
   });
 
@@ -35,5 +39,12 @@ describe('lerAmbiente', () => {
   it('recusa porta e duração inválidas', () => {
     expect(() => lerAmbiente({ ...BASE, PORT: 'abc' })).toThrow(/PORT/);
     expect(() => lerAmbiente({ ...BASE, SESSAO_DURACAO_SEGUNDOS: '0' })).toThrow(/SESSAO/);
+  });
+
+  it('limites de login inválidos derrubam a subida; CONFIAR_PROXY aceita 0', () => {
+    expect(() => lerAmbiente({ ...BASE, LOGIN_MAX_FALHAS: '0' })).toThrow(/LOGIN_MAX_FALHAS/);
+    expect(() => lerAmbiente({ ...BASE, LOGIN_MAX_POR_IP: 'muito' })).toThrow(/LOGIN_MAX_POR_IP/);
+    expect(() => lerAmbiente({ ...BASE, CONFIAR_PROXY: '-1' })).toThrow(/CONFIAR_PROXY/);
+    expect(lerAmbiente({ ...BASE, CONFIAR_PROXY: '1' }).saltosProxy).toBe(1);
   });
 });

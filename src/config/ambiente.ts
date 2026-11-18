@@ -10,6 +10,21 @@ export interface Ambiente {
   sessaoDuracaoSegundos: number;
   /** Conexões no pool do driver. O PGlite local precisa de 1 (veja scripts/dev.mjs). */
   poolMaximo: number;
+  /** Limite de login: tentativas (login + cadastro) por IP na janela. */
+  loginMaximoPorIp: number;
+  /** Limite de login: senhas erradas do mesmo e-mail, no mesmo IP, na janela. */
+  loginMaximoFalhas: number;
+  loginJanelaSegundos: number;
+  /** Quantos proxies na frente da API (balanceador da AWS = 1). 0 = IP da conexão. */
+  saltosProxy: number;
+}
+
+function inteiroPositivo(env: NodeJS.ProcessEnv, nome: string, padrao: number, minimo = 1): number {
+  const valor = Number(env[nome] ?? padrao);
+  if (!Number.isInteger(valor) || valor < minimo) {
+    throw new Error(`${nome} inválida: "${env[nome]}".`);
+  }
+  return valor;
 }
 
 export function lerAmbiente(env: NodeJS.ProcessEnv = process.env): Ambiente {
@@ -44,5 +59,11 @@ export function lerAmbiente(env: NodeJS.ProcessEnv = process.env): Ambiente {
     .map((o) => o.trim())
     .filter(Boolean);
 
-  return { porta, urlBanco, origensCors, jwtSegredo, sessaoDuracaoSegundos, poolMaximo };
+  return {
+    porta, urlBanco, origensCors, jwtSegredo, sessaoDuracaoSegundos, poolMaximo,
+    loginMaximoPorIp: inteiroPositivo(env, 'LOGIN_MAX_POR_IP', 30),
+    loginMaximoFalhas: inteiroPositivo(env, 'LOGIN_MAX_FALHAS', 5),
+    loginJanelaSegundos: inteiroPositivo(env, 'LOGIN_JANELA_SEGUNDOS', 900),
+    saltosProxy: inteiroPositivo(env, 'CONFIAR_PROXY', 0, 0),
+  };
 }

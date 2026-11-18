@@ -5,29 +5,48 @@ import type { Usuario } from '@calvarenga92/kurio-regras';
 import type { Request, Response } from 'express';
 import { DataSource } from 'typeorm';
 import { CABECALHO_CARRINHO } from '../carrinho/mescla.js';
-import { corpoObjeto } from '../comum/corpo.js';
-import { dadosInvalidos } from '../comum/erro-aplicacao.js';
+import { corpoObjeto, texto } from '../comum/corpo.js';
+import { dadosInvalidos, ErroAplicacao } from '../comum/erro-aplicacao.js';
 import { ExigeSessao, tokenDaRequisicao, UsuarioAtual } from './autenticacao.js';
+import { LimiteLogin } from './limite-login.js';
 import { paraUsuario, SessaoService } from './sessao.service.js';
 
 export const carrinhoVisitanteDa = (req: Request): string | null =>
   req.get(CABECALHO_CARRINHO)?.trim() || null;
+
+/** Atrás de proxy, o Express só usa X-Forwarded-For se `trust proxy` estiver ligado (CONFIAR_PROXY). */
+const ipDa = (req: Request): string => req.ip ?? req.socket.remoteAddress ?? 'desconhecido';
 
 @Controller()
 export class SessaoController {
   constructor(
     private readonly sessoes: SessaoService,
     private readonly banco: DataSource,
+    private readonly limite: LimiteLogin,
   ) {}
 
   @Post('sessao')
   @HttpCode(200)
-  entrar(@Body() corpo: unknown, @Req() req: Request) {
-    return this.sessoes.entrar(corpoObjeto(corpo), carrinhoVisitanteDa(req));
+  async entrar(@Body() corpo: unknown, @Req() req: Request) {
+    const dados = corpoObjeto(corpo);
+    const ip = ipDa(req);
+    const email = texto(dados.email);
+    this.limite.conferir(ip, email);
+    try {
+      const sessao = await this.sessoes.entrar(dados, carrinhoVisitanteDa(req));
+      this.limite.registrarSucesso(ip, email);
+      return sessao;
+    } catch (erro) {
+      if (erro instanceof ErroAplicacao && erro.codigo === 'CREDENCIAIS_INVALIDAS') {
+        this.limite.registrarFalha(ip, email);
+      }
+      throw erro;
+    }
   }
 
   @Post('contas')
   cadastrar(@Body() corpo: unknown, @Req() req: Request) {
+    this.limite.conferir(ipDa(req));
     return this.sessoes.cadastrar(corpoObjeto(corpo), carrinhoVisitanteDa(req));
   }
 

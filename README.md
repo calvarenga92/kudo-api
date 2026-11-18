@@ -34,6 +34,7 @@ Conferir: `GET http://localhost:3000/api/saude` → `{"status":"ok","banco":"ok"
 ```bash
 npm test               # unitários
 npm run test:e2e       # API inteira contra um Postgres em memória (PGlite), sem Docker
+npm run test:e2e:postgres  # o mesmo e2e no Postgres 17 do compose, com concorrência real
 npm run verificar      # typecheck + lint + unitários + e2e + build
 ```
 
@@ -49,7 +50,18 @@ Login devolve um JWT (HS256, 1 hora) que carrega o id da sessão; a sessão tamb
 registrada no banco. Assim **sair revoga o token na hora**, o que um JWT puro não faz.
 Senhas com scrypt (parâmetros da OWASP), comparação em tempo constante, e o mesmo
 custo e a mesma resposta para e-mail inexistente e senha errada: a API não revela quem
-tem conta. Contas de demonstração: `claudio@kudo.test` e `marina@kudo.test`, senha `senha12345`.
+tem conta.
+
+Tentativas de login têm freio, em duas camadas: por IP, no máximo 30 tentativas de login
+ou cadastro a cada 15 minutos; por e-mail + IP, 5 senhas erradas bloqueiam esse e-mail
+naquele IP até a janela acabar (login certo zera a contagem). O e-mail entra junto com o
+IP de propósito: assim ninguém tranca a conta de outra pessoa errando a senha dela. Passou
+do limite, a resposta é `429 MUITAS_TENTATIVAS` com `Retry-After`, e o bloqueio vem antes
+do hash da senha (que custa CPU). Atrás do balanceador, `CONFIAR_PROXY=1` faz a API ler
+o IP do `X-Forwarded-For`; sem isso o cabeçalho é ignorado e não serve para burlar o limite.
+O contador fica em memória: com mais de uma instância, vai para o Redis.
+
+Contas de demonstração: `claudio@kudo.test` e `marina@kudo.test`, senha `senha12345`.
 
 ## Carrinho de visitante
 

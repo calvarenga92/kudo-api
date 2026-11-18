@@ -5,5 +5,5 @@ import { lerAmbiente } from './config/ambiente.js';
 
 const ambiente = lerAmbiente();
 const app = await NestFactory.create(AppModule);
-configurarApp(app, ambiente.origensCors);
+configurarApp(app, ambiente.origensCors, ambiente.saltosProxy);
 await app.listen(ambiente.porta);
