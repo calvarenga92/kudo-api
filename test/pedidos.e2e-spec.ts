@@ -2,7 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import type { App } from 'supertest/types.js';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
-import type { Pedido } from '@calvarenga92/kurio-regras';
+import type { Pedido } from '@calvarenga92/kudo-regras';
 import { subirApi } from './apoio/subir-api.js';
 
 /**
@@ -59,7 +59,7 @@ describe('Pedidos e checkout (e2e)', () => {
     const token = await contaNova();
     const antes = await estoque('10-padrao');
     await noCarrinho(token, 'nft-010', '10-padrao', 2);
-    const { body: cotacao } = await http().post('/api/carrinho/cupom').set(auth(token)).send({ codigo: 'KURIO10' });
+    const { body: cotacao } = await http().post('/api/carrinho/cupom').set(auth(token)).send({ codigo: 'KUDO10' });
 
     const { body: pedido } = await comprar(token, chave(), { versaoCotacao: cotacao.versao }).expect(201);
     expect(pedido).toMatchObject({
@@ -68,7 +68,7 @@ describe('Pedidos e checkout (e2e)', () => {
       subtotalEth: cotacao.subtotalEth,
       descontoEth: cotacao.descontoEth,
       totalEth: cotacao.totalEth,
-      cupom: { codigo: 'KURIO10', descricaoDesconto: '10% de desconto' },
+      cupom: { codigo: 'KUDO10', descricaoDesconto: '10% de desconto' },
       carteira: { apelido: 'Principal', endereco: `0x${'1'.repeat(40)}`, rede: 'ethereum' },
       referenciaTransacao: expect.stringMatching(/^0x[0-9a-f]{32}$/),
       motivoRecusa: null,

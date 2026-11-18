@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { createHash, randomBytes } from 'node:crypto';
 import { DataSource, type EntityManager } from 'typeorm';
-import { paraTexto, paraUnidades, type Pedido, type StatusPedido } from '@calvarenga92/kurio-regras';
+import { paraTexto, paraUnidades, type Pedido, type StatusPedido } from '@calvarenga92/kudo-regras';
 import { CarrinhoService } from '../carrinho/carrinho.service.js';
 import { carrinhoDaConta } from '../carrinho/mescla.js';
 import { texto } from '../comum/corpo.js';

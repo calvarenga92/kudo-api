@@ -4,7 +4,7 @@ import { DataSource, type EntityManager } from 'typeorm';
 import {
   calcularTotais, CUPONS, paraTexto, paraUnidades, subtotalDoItem, versaoDaCotacao,
   type Cotacao, type Cupom, type ItemCarrinho,
-} from '@calvarenga92/kurio-regras';
+} from '@calvarenga92/kudo-regras';
 import { inteiroDoCorpo, texto } from '../comum/corpo.js';
 import { dadosInvalidos, ErroAplicacao, naoEncontrado } from '../comum/erro-aplicacao.js';
 import { carrinhoDaConta, novoIdCarrinho } from './mescla.js';

@@ -1,5 +1,5 @@
 import { Controller, Delete, Get, Param, Put, Query, Req, UseGuards } from '@nestjs/common';
-import type { Usuario } from '@calvarenga92/kurio-regras';
+import type { Usuario } from '@calvarenga92/kudo-regras';
 import type { Request } from 'express';
 import { ExigeSessao, tokenDaRequisicao, UsuarioAtual } from '../sessao/autenticacao.js';
 import { SessaoService } from '../sessao/sessao.service.js';

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { randomBytes } from 'node:crypto';
 import { DataSource, type EntityManager } from 'typeorm';
-import type { Carteira, RedeCarteira } from '@calvarenga92/kurio-regras';
+import type { Carteira, RedeCarteira } from '@calvarenga92/kudo-regras';
 import { texto } from '../comum/corpo.js';
 import { dadosInvalidos, naoEncontrado } from '../comum/erro-aplicacao.js';
 

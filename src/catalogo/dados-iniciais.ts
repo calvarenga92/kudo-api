@@ -1,4 +1,4 @@
-import { percentual } from '@calvarenga92/kurio-regras';
+import { percentual } from '@calvarenga92/kudo-regras';
 
 /**
  * Catálogo inicial: os mesmos dados do mock do front (jungle-nft/src/mocks/dados/nfts.ts),

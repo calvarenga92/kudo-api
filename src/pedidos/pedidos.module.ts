@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Headers, Module, Param, Post, Res, UseGuards } from '@nestjs/common';
-import { CABECALHO_IDEMPOTENCIA, type Usuario } from '@calvarenga92/kurio-regras';
+import { CABECALHO_IDEMPOTENCIA, type Usuario } from '@calvarenga92/kudo-regras';
 import type { Response } from 'express';
 import { CarrinhoModule } from '../carrinho/carrinho.module.js';
 import { corpoObjeto } from '../comum/corpo.js';

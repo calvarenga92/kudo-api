@@ -1,7 +1,7 @@
 import {
   Body, Controller, Delete, Get, HttpCode, Patch, Post, Req, Res, UseGuards,
 } from '@nestjs/common';
-import type { Usuario } from '@calvarenga92/kurio-regras';
+import type { Usuario } from '@calvarenga92/kudo-regras';
 import type { Request, Response } from 'express';
 import { DataSource } from 'typeorm';
 import { CABECALHO_CARRINHO } from '../carrinho/mescla.js';

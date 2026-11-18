@@ -1,5 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
-import { CABECALHO_IDEMPOTENCIA } from '@calvarenga92/kurio-regras';
+import { CABECALHO_IDEMPOTENCIA } from '@calvarenga92/kudo-regras';
 import { CABECALHO_CARRINHO } from './carrinho/mescla.js';
 import { FiltroErros } from './comum/filtro-erros.js';
 import { AdaptadorSocket } from './tempo-real/adaptador-socket.js';

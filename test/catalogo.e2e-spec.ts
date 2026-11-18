@@ -1,7 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import type { App } from 'supertest/types.js';
 import request from 'supertest';
-import { comparar, type NftResumo, type Pagina } from '@calvarenga92/kurio-regras';
+import { comparar, type NftResumo, type Pagina } from '@calvarenga92/kudo-regras';
 import { subirApi } from './apoio/subir-api.js';
 
 describe('Catálogo (e2e)', () => {

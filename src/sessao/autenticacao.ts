@@ -1,7 +1,7 @@
 import {
   CanActivate, createParamDecorator, ExecutionContext, Injectable,
 } from '@nestjs/common';
-import type { Usuario } from '@calvarenga92/kurio-regras';
+import type { Usuario } from '@calvarenga92/kudo-regras';
 import type { Request } from 'express';
 import { naoAutenticado } from '../comum/erro-aplicacao.js';
 import { SessaoService } from './sessao.service.js';

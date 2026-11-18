@@ -1,10 +1,6 @@
-import type { CodigoErro as CodigoDoContrato } from '@calvarenga92/kurio-regras';
+import type { CodigoErro } from '@calvarenga92/kudo-regras';
 
-/**
- * `MUITAS_TENTATIVAS` já está no contrato do @calvarenga92/kudo-regras 0.2.0. Enquanto a API
- * usa a kurio-regras 0.1.0, ele entra aqui; na troca de pacote, este tipo vira só o reexport.
- */
-export type CodigoErro = CodigoDoContrato | 'MUITAS_TENTATIVAS';
+export type { CodigoErro };
 
 /**
  * Erro de regra de negócio. O front decide pelo `codigo`, nunca pelo texto,

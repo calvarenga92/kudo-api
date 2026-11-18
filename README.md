@@ -12,7 +12,7 @@ mudando uma variável (`VITE_API_URL`), sem alterar código. O critério de pron
 módulo é a suíte Playwright do front passar contra a API real.
 
 Tipos e regras de negócio (dinheiro em inteiros de 18 casas, cotação, idempotência) vêm do
-pacote [`@calvarenga92/kurio-regras`](https://www.npmjs.com/package/@calvarenga92/kurio-regras),
+pacote [`@calvarenga92/kudo-regras`](https://www.npmjs.com/package/@calvarenga92/kudo-regras),
 o mesmo usado pelo front web e pelo app mobile. Um contrato, três clientes.
 
 ## Rodando

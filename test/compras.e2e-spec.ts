@@ -1,7 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import type { App } from 'supertest/types.js';
 import request from 'supertest';
-import type { Cotacao } from '@calvarenga92/kurio-regras';
+import type { Cotacao } from '@calvarenga92/kudo-regras';
 import { subirApi } from './apoio/subir-api.js';
 
 const CARRINHO = 'x-carrinho-visitante';
@@ -207,8 +207,8 @@ describe('Favoritos, carteiras e carrinho (e2e)', () => {
       const token = await contaNova();
       await http().post('/api/carrinho/itens').set(auth(token)).send(item('nft-001', '1-padrao', 2));
 
-      const comCupom = (await http().post('/api/carrinho/cupom').set(auth(token)).send({ codigo: ' kurio10 ' }).expect(200)).body;
-      expect(comCupom.cupom).toEqual({ codigo: 'KURIO10', descricaoDesconto: '10% de desconto' });
+      const comCupom = (await http().post('/api/carrinho/cupom').set(auth(token)).send({ codigo: ' kudo10 ' }).expect(200)).body;
+      expect(comCupom.cupom).toEqual({ codigo: 'KUDO10', descricaoDesconto: '10% de desconto' });
       expect(comCupom).toMatchObject({ subtotalEth: '3.98', descontoEth: '0.398', totalEth: '3.5862' });
 
       expect((await http().post('/api/carrinho/cupom').set(auth(token)).send({ codigo: 'NADA' }).expect(422)).body.codigo)
@@ -223,7 +223,7 @@ describe('Favoritos, carteiras e carrinho (e2e)', () => {
     it('versão da cotação muda quando quantidade ou cupom mudam', async () => {
       const token = await contaNova();
       const v1 = (await http().post('/api/carrinho/itens').set(auth(token)).send(item())).body.versao;
-      const v2 = (await http().post('/api/carrinho/cupom').set(auth(token)).send({ codigo: 'KURIO10' })).body.versao;
+      const v2 = (await http().post('/api/carrinho/cupom').set(auth(token)).send({ codigo: 'KUDO10' })).body.versao;
       expect(v2).not.toBe(v1);
       expect((await http().get('/api/carrinho').set(auth(token))).body.versao).toBe(v2);
     });

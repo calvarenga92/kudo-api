@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
-import type { Sessao, Usuario } from '@calvarenga92/kurio-regras';
+import type { Sessao, Usuario } from '@calvarenga92/kudo-regras';
 import { lerAmbiente } from '../config/ambiente.js';
 import { dadosInvalidos, ErroAplicacao, sessaoExpirada } from '../comum/erro-aplicacao.js';
 import { conferirSenha, gerarHash, hashParaEmailInexistente } from '../contas/senha.js';

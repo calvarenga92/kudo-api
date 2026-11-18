@@ -26,7 +26,7 @@
     "test:e2e:front": "node scripts/e2e-front.mjs"
   },
   "dependencies": {
-    "@calvarenga92/kurio-regras": "^0.1.0",
+    "@calvarenga92/kudo-regras": "^0.2.0",
     "@nestjs/common": "^12.0.1",
     "@nestjs/config": "^12.1.1",
     "@nestjs/core": "^12.0.1",

@@ -6,11 +6,9 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import type { CorpoErro as CorpoDoContrato } from '@calvarenga92/kurio-regras';
+import type { CodigoErro, CorpoErro } from '@calvarenga92/kudo-regras';
 import type { Response } from 'express';
-import { type CodigoErro, ErroAplicacao } from './erro-aplicacao.js';
-
-type CorpoErro = Omit<CorpoDoContrato, 'codigo'> & { codigo: CodigoErro };
+import { ErroAplicacao } from './erro-aplicacao.js';
 
 /** Erros do próprio Nest (rota inexistente, JSON malformado...) no código que o front entende. */
 const CODIGO_POR_STATUS: Partial<Record<number, CodigoErro>> = {

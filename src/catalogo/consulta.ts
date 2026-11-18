@@ -1,4 +1,4 @@
-import type { ConsultaNfts, OrdenacaoNft } from '@calvarenga92/kurio-regras';
+import type { ConsultaNfts, OrdenacaoNft } from '@calvarenga92/kudo-regras';
 import { dadosInvalidos } from '../comum/erro-aplicacao.js';
 
 const ORDENACOES: readonly OrdenacaoNft[] = ['recentes', 'preco-asc', 'preco-desc', 'populares'];

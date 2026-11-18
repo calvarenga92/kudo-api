@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Module, Param, Post, Put, UseGuards } from '@nestjs/common';
-import type { Usuario } from '@calvarenga92/kurio-regras';
+import type { Usuario } from '@calvarenga92/kudo-regras';
 import { corpoObjeto } from '../comum/corpo.js';
 import { ExigeSessao, UsuarioAtual } from '../sessao/autenticacao.js';
 import { SessaoModule } from '../sessao/sessao.module.js';

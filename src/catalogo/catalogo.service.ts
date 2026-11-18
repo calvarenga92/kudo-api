@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 import {
   paraTexto, paraUnidades,
   type Colecao, type ConsultaNfts, type Eth, type FaixaPreco, type Nft, type NftResumo, type Pagina,
-} from '@calvarenga92/kurio-regras';
+} from '@calvarenga92/kudo-regras';
 import { naoAutenticado, naoEncontrado } from '../comum/erro-aplicacao.js';
 
 /** numeric chega do driver como string ("1.990000000000000000"); sai no formato do contrato ("1.99"). */
