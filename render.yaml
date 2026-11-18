@@ -1,0 +1,23 @@
+# Deploy no Render (plano gratuito), pela imagem do Dockerfile.
+# O Postgres fica fora (Neon): DATABASE_URL entra no painel, nunca no repositório.
+# As migrações rodam sozinhas na subida (migrationsRun).
+services:
+  - type: web
+    name: kudo-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /api/saude
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SEGREDO
+        generateValue: true
+      - key: CORS_ORIGENS
+        value: https://calvarenga-jungle-nft.vercel.app
+      # O Render entrega a requisição por um balanceador: o IP real vem no X-Forwarded-For.
+      - key: CONFIAR_PROXY
+        value: "1"
+      - key: DB_POOL_MAX
+        value: "5"
