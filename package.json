@@ -22,7 +22,8 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "verificar": "npm run typecheck && npm run lint && npm test && npm run test:e2e && npm run build",
-    "test:e2e:postgres": "node scripts/e2e-postgres.mjs"
+    "test:e2e:postgres": "node scripts/e2e-postgres.mjs",
+    "test:e2e:front": "node scripts/e2e-front.mjs"
   },
   "dependencies": {
     "@calvarenga92/kurio-regras": "^0.1.0",

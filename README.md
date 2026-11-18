@@ -35,8 +35,16 @@ Conferir: `GET http://localhost:3000/api/saude` → `{"status":"ok","banco":"ok"
 npm test               # unitários
 npm run test:e2e       # API inteira contra um Postgres em memória (PGlite), sem Docker
 npm run test:e2e:postgres  # o mesmo e2e no Postgres 17 do compose, com concorrência real
+npm run test:e2e:front     # os testes Playwright do front (../jungle-nft) contra esta API
 npm run verificar      # typecheck + lint + unitários + e2e + build
 ```
+
+O contrato é o do MSW do front: a prova de que a API o cumpre é a mesma suíte Playwright
+passando contra ela. `test:e2e:front` sobe a API com um banco novo em memória a cada rodada
+(estoque e contas do zero, sem rota de reset em produção) e roda o Playwright com
+`VITE_API_URL` apontando para cá. Os testes de cenários que só existem no mock (catálogo
+vazio, erro 500 simulado, eventos de preço artificiais, migração do estado do mock) ficam
+marcados e são pulados nesse modo; hoje são 74 testes passando e 14 pulados.
 
 ## Contrato de erro
 
