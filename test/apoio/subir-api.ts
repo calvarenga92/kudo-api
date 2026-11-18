@@ -7,9 +7,11 @@ import { configurarApp } from '../../src/configurar-app.js';
 /** Sobe a API como o main.ts sobe, apontando para o banco de teste. */
 export async function subirApi(): Promise<INestApplication> {
   process.env.DATABASE_URL = inject('urlBanco');
-  // PGlite: uma conexão real só (veja scripts/dev.mjs).
-  process.env.DB_POOL_MAX = '1';
+  process.env.DB_POOL_MAX = inject('poolBanco');
   process.env.JWT_SEGREDO ??= 'segredo-de-teste-com-pelo-menos-32-caracteres';
+  // As suítes entram muitas vezes do mesmo IP; o limite tem suíte própria (limite-login.e2e-spec.ts).
+  process.env.LOGIN_MAX_POR_IP ??= '100000';
+  process.env.LOGIN_MAX_FALHAS ??= '100000';
   const modulo = await Test.createTestingModule({ imports: [AppModule] }).compile();
   const app = modulo.createNestApplication({ logger: false });
   configurarApp(app, ['http://localhost:5173']);
