@@ -7,7 +7,9 @@ const rodar = (cmd, args, env) => {
   if (r.status !== 0) process.exit(r.status ?? 1);
 };
 
-rodar('docker', ['compose', 'up', '-d', '--wait', 'banco']);
+// Com E2E_DATABASE_URL definida, usa esse Postgres (ex.: um instalado ou portátil, sem Docker).
+const urlExterna = process.env.E2E_DATABASE_URL?.trim();
+if (!urlExterna) rodar('docker', ['compose', 'up', '-d', '--wait', 'banco']);
 rodar('npx', ['vitest', 'run', '--config', './vitest.config.e2e.ts'], {
-  E2E_DATABASE_URL: 'postgres://kudo:kudo@localhost:5432/kudo',
+  E2E_DATABASE_URL: urlExterna || 'postgres://kudo:kudo@localhost:5432/kudo',
 });

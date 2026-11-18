@@ -35,6 +35,7 @@ Conferir: `GET http://localhost:3000/api/saude` → `{"status":"ok","banco":"ok"
 npm test               # unitários
 npm run test:e2e       # API inteira contra um Postgres em memória (PGlite), sem Docker
 npm run test:e2e:postgres  # o mesmo e2e no Postgres 17 do compose, com concorrência real
+                           # (ou em outro Postgres: E2E_DATABASE_URL=postgres://... antes)
 npm run test:e2e:front     # os testes Playwright do front (../jungle-nft) contra esta API
 npm run verificar      # typecheck + lint + unitários + e2e + build
 ```
